@@ -1,0 +1,75 @@
+#!/bin/bash
+
+SERVER_LIST="servers.txt"
+
+if [[ ! -f $SERVER_LIST ]]; then
+  echo "❌ Server list file '$SERVER_LIST' not found!"
+  exit 1
+fi
+
+read -rp "Enter SSH username to connect to remote servers (e.g., ec2-user, ubuntu, root): " ssh_user
+read -rp "Enter path to private SSH key (leave blank if using agent or default): " ssh_key
+
+echo "Select authentication method for new user 'automation':"
+echo "1. Password-based"
+echo "2. Key-based"
+read -rp "Enter choice [1 or 2]: " auth_type
+
+if [[ $auth_type == 1 ]]; then
+  read -rsp "Enter password for user 'automation': " user_pass
+  echo
+elif [[ $auth_type == 2 ]]; then
+  read -rp "Enter public SSH key for 'automation' user: " user_pub_key
+else
+  echo "❌ Invalid choice."
+  exit 1
+fi
+
+while read -r server; do
+  echo -e "\n🔗 Connecting to $server..."
+  SSH_CMD="ssh"
+  [[ -n $ssh_key ]] && SSH_CMD="ssh -i $ssh_key"
+
+  $SSH_CMD "$ssh_user@$server" "bash -s" <<EOF
+# Create user if not exists
+if id automation &>/dev/null; then
+  echo "User 'automation' already exists."
+else
+  sudo useradd -m automation
+fi
+
+# Set password or key-based auth
+if [[ "$auth_type" == "1" ]]; then
+  echo "automation:$user_pass" | sudo chpasswd
+  sudo chage -d 0 automation
+else
+  sudo mkdir -p /home/automation/.ssh
+  echo "$user_pub_key" | sudo tee /home/automation/.ssh/authorized_keys > /dev/null
+  sudo chmod 600 /home/automation/.ssh/authorized_keys
+  sudo chown -R automation:automation /home/automation/.ssh
+fi
+
+# Check and install Apache
+if ! command -v httpd &>/dev/null && ! command -v apache2 &>/dev/null; then
+  echo "Installing Apache..."
+  if command -v yum &>/dev/null; then
+    sudo yum install -y httpd
+    sudo systemctl enable httpd
+    sudo systemctl start httpd
+  elif command -v apt &>/dev/null; then
+    sudo apt update
+    sudo apt install -y apache2
+    sudo systemctl enable apache2
+    sudo systemctl start apache2
+  else
+    echo "Unsupported OS."
+  fi
+else
+  echo "Apache is already installed."
+fi
+EOF
+
+  echo "✅ Done for $server"
+done < "$SERVER_LIST"
+
+echo -e "\n🎉 Task completed on all servers."

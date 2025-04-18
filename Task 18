@@ -1,0 +1,44 @@
+Task 18: palbook-- diff jdk installed  on different server
+
+we need created one directort /etc/ansible/host_vars
+under host_vars  two files need to create to mention jvav version 1.server1.yaml  2.server2.yml
+cat server1.yaml
+java_version: "11"
+
+cat server2.yaml
+java_version: "17"
+
+multi_java_installation.yaml
+---
+- name: Install Java (Corretto) per host requirement
+  hosts: all
+  become: true
+
+  vars:
+    corretto_11_url: https://corretto.aws/downloads/latest/amazon-corretto-11-x64-linux-jdk.rpm
+    corretto_17_url: https://corretto.aws/downloads/latest/amazon-corretto-17-x64-linux-jdk.rpm
+
+  tasks:
+    - name: Set download URL based on Java version
+      set_fact:
+        java_rpm_url: "{{ corretto_11_url if java_version == '11' else corretto_17_url }}"
+        java_rpm_file: "/tmp/java-{{ java_version }}.rpm"
+
+    - name: Download Java {{ java_version }} RPM
+      get_url:
+        url: "{{ java_rpm_url }}"
+        dest: "{{ java_rpm_file }}"
+        mode: '0644'
+
+    - name: Install Java {{ java_version }}
+      yum:
+        name: "{{ java_rpm_file }}"
+        state: present
+
+    - name: Verify installed Java version
+      shell: java -version 2>&1 | head -n 1
+      register: java_output
+
+    - name: Display only server name and Java version
+      debug:
+        msg: "{{ inventory_hostname }}: {{ java_output.stdout }}"

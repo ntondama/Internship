@@ -1,0 +1,36 @@
+we need to update in hosts file
+vi /etc/ansible/hosts
+[slaves]
+server1
+server2
+
+run below command
+
+ansible-playbook myplay.yaml
+
+
+This the playbook for user addition on the multi servers
+
+vi myplay.yaml
+
+---
+- name: Create multiple users on slaves
+  hosts: slaves
+  become: true
+  vars:
+    users:
+      - Ramesh
+      - Suresh
+      - ramesh
+
+  tasks:
+    - name: Create users
+      user:
+        name: "{{ item }}"
+        state: present
+      loop: "{{ users }}"
+
+    - name: Display created user and server info
+      debug:
+        msg: "User '{{ item }}' created on host '{{ inventory_hostname }}'"
+      loop: "{{ users }}"

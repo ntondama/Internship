@@ -1,0 +1,131 @@
+Output
+
+Apply complete! Resources: 11 added, 0 changed, 3 destroyed.
+
+Outputs:
+
+private_subnets = {
+  "private-app-ap-southeast-2a" = "subnet-0108946fb27db16d9"
+  "private-app-ap-southeast-2b" = "subnet-099dc383ddefdfc8c"
+  "private-app-ap-southeast-2c" = "subnet-0fdef0a8e53dc90e4"
+  "private-db-ap-southeast-2a" = "subnet-0c17adfbe176d0e2a"
+  "private-db-ap-southeast-2b" = "subnet-005f4d9d0ce8b21df"
+  "private-db-ap-southeast-2c" = "subnet-0d8786c54e2db84f7"
+}
+public_subnets = {
+  "public-lb-ap-southeast-2a" = "subnet-0a631735632055a79"
+  "public-lb-ap-southeast-2b" = "subnet-0a0ef881b922c2ffc"
+  "public-lb-ap-southeast-2c" = "subnet-0db5498151334b06f"
+}
+##################################
+
+CODE
+
+######################
+
+main.tf
+
+provider "aws" {
+  region = var.region
+}
+
+# Create VPC
+resource "aws_vpc" "main" {
+  cidr_block           = var.vpc_cidr
+  enable_dns_support   = true
+  enable_dns_hostnames = true
+
+  tags = {
+    Name = "task13-vpc"
+  }
+}
+
+# Create Internet Gateway for public subnets
+resource "aws_internet_gateway" "igw" {
+  vpc_id = aws_vpc.main.id
+
+  tags = {
+    Name = "task13-igw"
+  }
+}
+
+# Local logic for public/private subnet creation
+locals {
+  subnet_definitions = {
+    for subnet in flatten([
+      for az in var.azs : [
+        {
+          name   = "public-lb-${az}"
+          az     = az
+          tier   = "lb"
+          public = true
+        },
+        {
+          name   = "private-app-${az}"
+          az     = az
+          tier   = "app"
+          public = false
+        },
+        {
+          name   = "private-db-${az}"
+          az     = az
+          tier   = "db"
+          public = false
+        }
+      ]
+    ]) : subnet.name => subnet
+  }
+}
+
+# Create Subnets
+resource "aws_subnet" "subnets" {
+  for_each = local.subnet_definitions
+
+  vpc_id                  = aws_vpc.main.id
+  cidr_block              = cidrsubnet(var.vpc_cidr, 8, index(keys(local.subnet_definitions), each.key))
+  availability_zone       = each.value.az
+  map_public_ip_on_launch = each.value.public
+
+  tags = {
+    Name = each.key
+    Tier = each.value.tier
+    Type = each.value.public ? "Public" : "Private"
+  }
+}
+
+###############################################
+
+variables.tf
+
+variable "region" {
+  default = "ap-southeast-2"
+}
+
+variable "azs" {
+  default = ["ap-southeast-2a", "ap-southeast-2b", "ap-southeast-2c"]
+}
+
+variable "vpc_cidr" {
+  default = "10.0.0.0/16"
+}
+
+
+################################################
+
+output.tf
+
+output "public_subnets" {
+  value = {
+    for k, s in aws_subnet.subnets :
+    k => s.id if s.map_public_ip_on_launch
+  }
+}
+
+output "private_subnets" {
+  value = {
+    for k, s in aws_subnet.subnets :
+    k => s.id if !s.map_public_ip_on_launch
+  }
+}
+
+

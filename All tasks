@@ -1,0 +1,76 @@
+Tasks:
+
+## AWS ##
+
+*Task1*
+*Automate the server hostname*
+Create server and set the server name in the the aws console. What ever the name you gave in the console same name have to set as hostname inside the server. This has to be automated no manual work.
+
+*Task2*
+ Install apache in the server and ensure that the server name is written to the index.html file. In simple when I hit the ipaddress of server it should respond as "Hi I am from Serverxxxxx*
+
+*Task3*
+Create one private hosted zone as dvstech.com and automate the registeration of all the servers to the private hosted zone
+
+*TASK4*
+1. Create one VPC with private & public subnets.
+2. Create two servers 1 public,1 private
+3. Login to private server from public server 
+4. Install apache in the *private server*
+5. Figure out a way how to install softwares in private subnet servers
+
+*Task5*
+1. Create one vpc with 6 subnets (3 private,3 public)
+2. Create one application loadbalancer with 3 target groups in 3 public subnets
+
+*Task6*
+1. Create 3 application servers in the private subnet, ensure that Apache is installed and its respective server name is updated in the index.html 
+2. ⁠it’s mandatory that servers should get auto registered with route53
+3. ⁠when ever we hit the load balancer with respective server name as context that server should respond
+4. ⁠proper architecture should be created for the same
+
+*Task7*
+1. Create one ec2 instance with new key pair
+2. ⁠login to server and create a folder called /opt/recovery 
+3. ⁠create a file called real-time.txt in recovery folder and write the content as I am pass … 
+4. ⁠capture the output of file 
+5. ⁠now go to your laptop and delete all the keys public,private and pem key 
+6. ⁠finally text me once u r done
+
+*Task8:*
+1. Create one ec2 instance and add a ebs volume in region1
+2. ⁠format the disk with LVM
+3. ⁠write data to the disk 
+4. ⁠now migrate the same server along with data to region2
+
+## SHELL SCRIPTING ##
+
+*Task9:*
+*Create a shell script which should create a user called automation in all servers passed in a file. Script should ask if the user should have username with password authentication or username with key based authentication. If it’s password based then it should ask to enter password and like wise if it’s key based then it should ask to enter the key. After providing these details user should get created in all the servers provided. Note: atleast keep 3 servers.*
+
+*Task10*
+*User the automation user created above and try to install Apache in the servers if Apache didn’t exists*
+
+### TERRAFORM ###
+
+*task11*
+*Create one server with IaC with name as task1-server1*
+
+* task11.1*
+*create a server from default vpc where subnet belongs to 1a and you should not pass the subnet value but you have to consume the existing values and built the server from subnet 1A zone. Name the server as task11-server1a*
+
+*Task12*
+Create three servers with each in each availability zones like server1a,1b,1c
+
+*Task13*
+Create a vpc with 9 subnets(6 private and 3 public). 3 types application, database and loadbalncer. Choose 3 avzs and names accordingly…
+try to write the logic based upon the logic it should create whether it is private and public subnets.
+
+Task14
+Create RDS with mysql and choose the private db subnets for the same. Create one EC2 instance then install and configure the wordpress, generate an image out of it.
+Note:  your code should dynamically pick the rds dns and it should inject to ec2 on image creation.
+*Better to create one more subnet called Jump subnet and make it as public*
+*Ensure you are managing the security groups accordingly*
+
+*Task15*
+Configure autoscalling for the application and add the application servers to the application load balancer where application servers should connect to rds database

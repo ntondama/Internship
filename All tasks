@@ -74,3 +74,5 @@ Note:  your code should dynamically pick the rds dns and it should inject to ec2
 
 *Task15*
 Configure autoscalling for the application and add the application servers to the application load balancer where application servers should connect to rds database
+
+Task 20:Install and configure word press appliation using Ansible roles. take ec2 for my sql

@@ -75,4 +75,6 @@ Note:  your code should dynamically pick the rds dns and it should inject to ec2
 *Task15*
 Configure autoscalling for the application and add the application servers to the application load balancer where application servers should connect to rds database
 
+Task 18 repo is Task19: create two servers in dev and prod environments using terraform. Use Ansible to auto magically retrieve them dynamically from aws and install java inside the servers. For example in future any servers are added like in dev and prod environment we should not do any changes in Ansible hosts file.
+
 Task 20:Install and configure word press appliation using Ansible roles. take ec2 for my sql
